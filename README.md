@@ -174,3 +174,17 @@ The following project components are currently maintained outside the repository
 A key project finding was that the source dataset was designed for machine learning classification rather than measurement of distracted driving prevalence.
 
 As a result, behaviour frequencies cannot be interpreted as real-world driving statistics. This significantly influenced the analytical design of the project and led to a stronger focus on behaviour classification, event generation and driver monitoring use cases.
+
+## Data Quality Validation
+
+A validation process was implemented prior to model training to verify image integrity across the dataset.
+
+Results:
+
+- Images checked: 7,286
+- Corrupted images identified: 10
+- Corrupted images removed from the training dataset
+
+Corrupted files were detected using Python and PIL image verification before model development. Invalid images were isolated from the training dataset to prevent data loading failures during PyTorch model training.
+
+This step helped establish a clean and reliable dataset for downstream machine learning workflows.
