@@ -1,36 +1,53 @@
-# Distracted Driver Analytics Pipeline
+# Distracted Driver Analytics Platform
 
 ## Overview
 
-This project explores distracted driving behaviours using a modern driver behaviour image dataset.
+This project explores how driver monitoring data can be transformed into an end-to-end analytics and machine learning platform for identifying distracted driving behaviours.
 
-The project focuses on building an end-to-end data and analytics platform using:
+The project combines:
 
 - Python
 - Databricks
 - Delta Lake
 - SQL
+- MLflow
+- PyTorch
 - Power BI
 
-Future project phases may incorporate machine learning and MLflow to support automated driver behaviour classification.
+Rather than focusing solely on image classification, the project aims to demonstrate how behavioural observations can be processed, enriched, classified and ultimately transformed into actionable safety insights.
+
+## Project Objective
+
+The long-term goal is to simulate a driver monitoring system capable of identifying potentially unsafe driving behaviours before they contribute to road incidents.
+
+The project combines:
+
+1. Driver behaviour classification using computer vision.
+2. Experiment tracking and model evaluation using MLflow.
+3. Data engineering using a Medallion Architecture (Bronze, Silver, Gold).
+4. Reporting and business-focused analytics.
 
 ## Architecture
 
-Raw Images  
-↓  
-Metadata Extraction (Python)  
-↓  
-Bronze Layer (Databricks)  
-↓  
-Silver Layer  
-↓  
-Gold Layer  
-↓  
-Power BI Dashboard
+Raw Images
+↓
+Behaviour Classification Model (PyTorch)
+↓
+MLflow Experiment Tracking
+↓
+Predicted Behaviour Events
+↓
+Bronze Layer (Databricks)
+↓
+Silver Layer
+↓
+Gold Layer
+↓
+Reporting & Visualisation
 
 ## Dataset
 
-**Multi-Class Driver Behavior Image Dataset**
+Multi-Class Driver Behavior Image Dataset
 
 Behaviour categories:
 
@@ -40,11 +57,15 @@ Behaviour categories:
 - Turning
 - Other Activities
 
+The dataset was originally created for computer vision classification rather than estimating real-world distracted driving prevalence.
+
+Dataset distributions should therefore be interpreted as labelled training observations rather than representative population statistics.
+
 ## Data Model
 
 ### Bronze Layer
 
-Raw image metadata extracted from the source image dataset.
+Raw image metadata extracted from the source dataset.
 
 Columns:
 
@@ -63,11 +84,31 @@ Additional columns:
 
 #### Important Note
 
-Risk categories were created as part of this project and are not provided by the original dataset.
+Risk categories were developed as part of this project and are not provided by the original dataset.
 
-The `other_activities` class is assigned `unknown_risk` because it contains multiple behaviours with potentially different risk levels. The original dataset groups several activities under a single label, making it impossible to assign a reliable risk category without additional information.
+The `other_activities` class is assigned `unknown_risk` because it contains multiple behaviours with potentially different risk levels. The dataset does not provide sufficient detail to assign a reliable risk category.
+
+## Machine Learning Layer
+
+The machine learning component is designed to classify driver behaviours directly from image data.
+
+Current technology stack:
+
+- PyTorch
+- Google Colab (Tesla T4 GPU)
+- MLflow
+- Databricks
+
+Planned outputs:
+
+- Behaviour predictions
+- Model evaluation metrics
+- Experiment tracking
+- Behaviour event generation for downstream analytics
 
 ## Current Progress
+
+### Data Engineering
 
 ✅ Dataset selected
 
@@ -77,13 +118,37 @@ The `other_activities` class is assigned `unknown_risk` because it contains mult
 
 ✅ Bronze table created in Databricks
 
-✅ Initial SQL exploration completed
+✅ Silver layer created
 
-✅ Silver layer created with behaviour groups and risk categories
+✅ Behaviour groups implemented
 
-✅ Driver monitoring business classifications implemented
+✅ Risk categories implemented
 
 ✅ Silver layer documented and validated
+
+### Machine Learning
+
+✅ MLflow environment validated
+
+✅ PyTorch environment validated
+
+✅ Google Colab GPU environment configured
+
+✅ Dataset ingestion proof of concept completed
+
+⏳ Model training
+
+⏳ Model evaluation
+
+⏳ Prediction pipeline
+
+### Analytics
+
+⏳ Gold layer
+
+⏳ Reporting model
+
+⏳ Power BI dashboard
 
 ## Repository Structure
 
@@ -94,18 +159,18 @@ The `other_activities` class is assigned `unknown_risk` because it contains mult
 └── .gitignore
 ```
 
-### External Assets
+## External Assets
 
 The following project components are currently maintained outside the repository:
 
 - Databricks notebooks
 - Bronze and Silver Delta tables
 - Source image dataset
+- ML experiments
+- Model training notebooks
 
-## Project Goal
+## Lessons Learned
 
-The objective of this project is not to analyse image quality or estimate real-world distracted driving prevalence.
+A key project finding was that the source dataset was designed for machine learning classification rather than measurement of distracted driving prevalence.
 
-Instead, the project demonstrates how driver monitoring observations can be transformed into an analytics-ready data platform using a Bronze, Silver and Gold architecture.
-
-The long-term goal is to simulate a driver monitoring system capable of identifying distracted driving behaviours and supporting downstream risk analysis, reporting and dashboarding.
+As a result, behaviour frequencies cannot be interpreted as real-world driving statistics. This significantly influenced the analytical design of the project and led to a stronger focus on behaviour classification, event generation and driver monitoring use cases.
