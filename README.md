@@ -1,11 +1,9 @@
 # Distracted Driver Analytics Platform
 
 ## Overview
-
 This project explores how driver monitoring data can be transformed into an end-to-end analytics and machine learning platform for identifying distracted driving behaviours.
 
 The project combines:
-
 - Python
 - Databricks
 - Delta Lake
@@ -14,16 +12,14 @@ The project combines:
 - PyTorch
 - Power BI
 
-Rather than focusing solely on image classification, the project demonstrates how behavioural observations can be processed, enriched, classified and ultimately transformed into actionable safety insights.
+Rather than focusing solely on image classification, the project demonstrates how behavioural observations can be processed, enriched, classified, and ultimately transformed into actionable safety insights.
 
 ---
 
-# Project Objective
-
+## Project Objective
 The long-term goal is to simulate a driver monitoring system capable of identifying potentially unsafe driving behaviours before they contribute to road incidents.
 
 The project combines:
-
 1. Driver behaviour classification using computer vision.
 2. Experiment tracking and model evaluation using MLflow.
 3. Data engineering using a Medallion Architecture (Bronze, Silver, Gold).
@@ -31,212 +27,203 @@ The project combines:
 
 ---
 
-# Architecture
+## Architecture
 
+```text
 Raw Images
-
-↓
-
+    ↓
 Behaviour Classification Model (PyTorch)
-
-↓
-
+    ↓
 MLflow Experiment Tracking
-
-↓
-
+    ↓
 Predicted Behaviour Events
-
-↓
-
+    ↓
 Bronze Layer (Databricks)
-
-↓
-
+    ↓
 Silver Layer
-
-↓
-
+    ↓
 Gold Layer
-
-↓
-
+    ↓
 Reporting & Visualisation
+```
 
 ---
 
-# Dataset
+## Dataset
 
-**Multi-Class Driver Behavior Image Dataset**
-
+### Multi-Class Driver Behavior Image Dataset
 Behaviour categories:
-
 - Safe Driving
 - Talking on Phone
 - Texting on Phone
 - Turning
 - Other Activities
 
-The dataset was originally created for computer vision classification rather than estimating real-world distracted driving prevalence.
+The dataset was originally created for computer vision classification rather than estimating real-world distracted driving prevalence. Dataset distributions should therefore be interpreted as labelled training observations rather than representative population statistics.
 
-Dataset distributions should therefore be interpreted as labelled training observations rather than representative population statistics.
-
----
-
-# Data Quality Validation
-
+### Data Quality Validation
 A validation process was implemented prior to model training to verify image integrity across the dataset.
 
-Results:
+- **Images checked:** 7,286
+- **Corrupted images identified:** 10
+- **Corrupted images removed from the training dataset:** 10
 
-- Images checked: 7,286
-- Corrupted images identified: 10
-- Corrupted images removed from the training dataset
-
-Corrupted files were detected using Python and PIL image verification before model development. Invalid images were isolated from the training dataset to prevent data loading failures during PyTorch model training.
-
-This step helped establish a clean and reliable dataset for downstream machine learning workflows.
+Corrupted files were detected using Python and PIL image verification before model development. Invalid images were isolated from the training dataset to prevent data loading failures during PyTorch model training. This step helped establish a clean and reliable dataset for downstream machine learning workflows.
 
 ---
 
-# Data Model
+## Data Model
 
-## Bronze Layer
-
+### Bronze Layer
 Raw image metadata extracted from the source dataset.
+- `image_name`
+- `behaviour`
+- `extension`
 
-Columns:
-
-- image_name
-- behaviour
-- extension
-
----
-
-## Silver Layer
-
+### Silver Layer
 Business enrichment layer that adds analytical classifications to behaviour observations.
+- `behaviour_group`
+- `risk_category`
 
-Additional columns:
-
-- behaviour_group
-- risk_category
-
-### Important Note
-
-Risk categories were developed as part of this project and are not provided by the original dataset.
-
-The `other_activities` class is assigned `unknown_risk` because it contains multiple behaviours with potentially different risk levels. The dataset does not provide sufficient detail to assign a reliable risk category.
+> ⚠️ **Important Note:** Risk categories were developed as part of this project and are not provided by the original dataset. The `other_activities` class is assigned `unknown_risk` because it contains multiple behaviours with potentially different risk levels. The dataset does not provide sufficient detail to assign a reliable risk category.
 
 ---
 
-# Machine Learning Layer
-
+## Machine Learning Layer
 The machine learning component classifies driver behaviours directly from image data.
 
-Technology Stack:
+### Technology Stack
+- **Framework:** PyTorch
+- **Hardware:** Google Colab (Tesla T4 GPU)
+- **Experiment Tracking:** MLflow
+- **Data Platform:** Databricks
 
-- PyTorch
-- Google Colab (Tesla T4 GPU)
-- MLflow
-- Databricks
-
----
-
-# MobileNetV2 Baseline Model
-
-The first baseline model was implemented using MobileNetV2.
-
-Dataset split:
+### Dataset Split
 
 | Dataset | Images |
-|----------|---------:|
-| Training | 5,093 |
-| Validation | 1,091 |
-| Test | 1,092 |
+| :--- | :--- |
+| **Training** | 5,093 |
+| **Validation** | 1,091 |
+| **Test** | 1,092 |
+
+### Models Evaluated
+Two transfer learning architectures were evaluated:
+- MobileNetV2
+- ResNet18
+
+Both models were initialized using pretrained ImageNet weights and fine-tuned for driver behaviour classification.
+
+### Model Comparison
+
+| Model | Accuracy | Loss |
+| :--- | :---: | :---: |
+| **MobileNetV2** | 91.94% | 0.1972 |
+| **ResNet18** | **93.22%** | **0.2592** |
+
+#### Selected Model
+**ResNet18** achieved the highest test accuracy and was selected as the best-performing model within the current experimental setup. Although MobileNetV2 is a lighter architecture with lower computational requirements, ResNet18 delivered stronger classification performance on the final evaluation dataset.
 
 ---
 
-## Baseline Results
+## Model Evaluation Results
 
-| Metric | Value |
-|----------|----------:|
-| Test Accuracy | 93.68% |
-| Test Loss | 0.1809 |
+### 1. MobileNetV2 Results
 
----
-
-## Model Evaluation
-
-Artifacts generated:
-
-- Confusion Matrix
+#### Artifacts Generated
+- Confusion Matrix (`mobilenet_confusion_matrix.png`)
 - Classification Report
 - Prediction Table
 - MLflow Experiment Run
 
-### Classification Performance
+#### Classification Report (Accuracy: 91.94%)
 
 | Class | Precision | Recall | F1 Score |
-|----------|----------:|----------:|----------:|
-| other_activities | 0.77 | 0.95 | 0.85 |
-| safe_driving | 0.95 | 0.92 | 0.94 |
-| talking_phone | 0.98 | 0.94 | 0.96 |
-| texting_phone | 1.00 | 0.95 | 0.97 |
-| turning | 0.99 | 0.92 | 0.95 |
+| :--- | :---: | :---: | :---: |
+| `other_activities` | 0.866 | 0.875 | 0.870 |
+| `safe_driving` | 0.936 | 0.898 | 0.916 |
+| `talking_phone` | 0.985 | 0.923 | 0.953 |
+| `texting_phone` | 0.991 | 0.920 | 0.954 |
+| `turning` | 0.824 | 0.981 | 0.896 |
 
-Overall Accuracy: **93.68%**
-
----
-
-## Key Findings
-
-- MobileNetV2 achieved strong performance across all behaviour categories.
-- Phone-related distraction behaviours were identified with particularly high accuracy.
-- The most challenging class was `other_activities`.
-- The most common classification errors occurred between:
-  - other_activities and safe_driving
-  - other_activities and turning
-- The model occasionally produced high-confidence misclassifications, making confidence analysis an important part of downstream analytics.
+#### Key Findings
+- Phone-related behaviours achieved the strongest results.
+- Texting and phone conversations were detected with high precision and recall.
+- The most challenging behaviours involved activity overlap with turning and other non-phone activities.
+- MobileNetV2 delivered strong performance while maintaining a lightweight architecture.
 
 ---
 
-# Current Progress
+### 2. ResNet18 Results
 
-## Data Engineering
+#### Artifacts Generated
+- Confusion Matrix (`resnet_confusion_matrix.png`)
+- Classification Report
+- Prediction Table
+- MLflow Experiment Run
 
-✅ Dataset selected
+#### Classification Report (Accuracy: 93.22%)
 
-✅ Metadata extraction process created
+| Class | Precision | Recall | F1 Score |
+| :--- | :---: | :---: | :---: |
+| `other_activities` | 0.746 | 0.962 | 0.840 |
+| `safe_driving` | 0.972 | 0.910 | 0.940 |
+| `talking_phone` | 0.985 | 0.925 | 0.954 |
+| `texting_phone` | 0.987 | 0.957 | 0.972 |
+| `turning` | 1.000 | 0.913 | 0.954 |
 
-✅ 7,286 image records transformed into structured metadata
-
-✅ Bronze table created in Databricks
-
-✅ Silver layer created
-
-✅ Behaviour groups implemented
-
-✅ Risk categories implemented
-
-✅ Silver layer documented and validated
+#### Key Findings
+- ResNet18 achieved the strongest overall performance.
+- Phone-related distraction behaviours were classified with high accuracy.
+- The model delivered the highest F1 scores for texting, talking on the phone and turning.
+- Most remaining classification errors involved the visually diverse `other_activities` category.
 
 ---
 
-## Machine Learning
+## Business Insights
+The project demonstrates that driver behaviour detection can be integrated into a broader analytics solution rather than existing as a standalone machine learning model.
 
-✅ MLflow environment configured
+- **Phone-related distraction** behaviours are easier to classify than general activity categories.
+- The `other_activities` class introduces significant visual variability and remains the most difficult category.
+- Model evaluation should be based on **empirical testing** rather than assumptions about model complexity.
+- Higher-capacity architectures may provide measurable improvements when distinguishing visually similar driving behaviours.
 
-✅ PyTorch environment configured
+---
 
-✅ Google Colab GPU environment configured
+## Project Status
 
-✅ Dataset ingestion completed
+**Current phase:** `Machine Learning Evaluation Complete`  
+**Next phase:** `Analytics & Reporting Layer`
 
-✅ MobileNetV2 baseline model trained
+### Current Progress
 
-✅ Model evaluation completed
+#### Data Engineering
+- [x] Dataset selected
+- [x] Metadata extraction process created
+- [x] 7,286 image records validated
+- [x] 10 corrupted images identified and removed
+- [x] Bronze layer created
+- [x] Silver layer created
+- [x] Behaviour groups implemented
+- [x] Risk categories implemented
+- [x] Silver layer documented and validated
 
-✅ Confusion matrix generated
+#### Machine Learning
+- [x] MLflow configured
+- [x] PyTorch environment configured
+- [x] Google Colab GPU environment configured
+- [x] Dataset ingestion completed
+- [x] MobileNetV2 trained and evaluated
+- [x] ResNet18 trained and evaluated
+- [x] Classification reports generated
+- [x] Confusion matrices generated
+- [x] Prediction datasets generated
+- [x] Model comparison completed
+- [x] Best-performing model identified
 
-✅ Classification 
+### Next Steps
+1. Generate behavioural prediction events.
+2. Load prediction outputs into Databricks.
+3. Create Bronze, Silver and Gold analytical layers.
+4. Build analytical views using SQL.
+5. Develop Power BI dashboards.
+6. Deliver business-focused distracted driving insights.
